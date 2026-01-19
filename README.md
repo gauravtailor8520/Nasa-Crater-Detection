@@ -1,691 +1,512 @@
-# Lunar Crater Detection System
+# Crater Detection Project
 
-A complete automated pipeline for detecting and characterizing lunar craters from satellite imagery using YOLOv8 object detection and ellipse fitting algorithms.
+## 📋 Project Overview
 
----
+This is a comprehensive **Lunar Crater Detection System** that uses YOLOv8 deep learning model for detecting craters in satellite imagery. The project includes:
 
-## 📋 Table of Contents
+- **YOLO-based crater detection**: Detects crater locations and bounding boxes
+- **Ellipse fitting**: Accurately fits ellipses to crater shapes using image processing
+- **Web interface**: Flask-based web application for easy crater detection
+- **Model training**: Complete training pipeline with evaluation metrics
+- **Batch processing**: Process multiple images for crater analysis
 
-- [Overview](#overview)
-- [Dataset](#dataset)
-- [Project Structure](#project-structure)
-- [Installation & Setup](#installation--setup)
-- [Quick Start](#quick-start)
-- [Detailed Usage Guide](#detailed-usage-guide)
-- [Input/Output Specifications](#inputoutput-specifications)
-- [Testing](#testing)
-- [Results & Performance](#results--performance)
-- [Troubleshooting](#troubleshooting)
-
----
-<img width="2592" height="2048" alt="image" src="https://github.com/user-attachments/assets/4ed27e68-f87f-4dc8-9d51-3f5e4fcbb48e" />
-
-
-## 🎯 Overview
-
-This system detects and characterizes lunar craters in satellite imagery using a two-stage approach:
-
-1. **YOLOv8 Detection**: Localizes crater regions in full images
-2. **Ellipse Fitting**: Extracts precise crater parameters (center, semi-major/minor axes, rotation angle)
-
-### Key Capabilities
-
-- **Automated crater detection** across varying altitudes, lighting conditions, and camera orientations
-- **Precise ellipse fitting** using contour analysis and distance transforms
-- **Batch processing** of multiple images with CSV output
-- **Model training** with custom datasets
-- **Validation** against ground truth annotations
+### Key Features
+✅ Automated crater detection in satellite images  
+✅ Ellipse parameter estimation for crater shape analysis  
+✅ Web UI for real-time image processing  
+✅ Batch processing capabilities  
+✅ Detailed performance metrics and scoring  
 
 ---
 
-## 📊 Dataset
-
-### Training Data
-- **Total Images**: 4,150 PNG files
-- **Total Crater Annotations**: 183,329 labeled craters
-- **Ground Truth**: `train-sb/train-gt.csv`
-
-### Test Data
-- **Total Images**: 1,350 PNG files
-- **No ground truth** (for evaluation)
-
-### Data Organization
+## 🏗️ Project Structure
 
 ```
-train/train/
-├── altitude01/ through altitude10/
-│   ├── longitude02/ through longitude19/
-│   │   ├── orientation01_light01.png
-│   │   ├── orientation01_light02.png
-│   │   ├── ... (10 orientations × 5 lighting = 50 files per location)
-│   │   └── truth/
-│   │       └── annotation files
-```
-
-**Hierarchy**: Altitude → Longitude → Orientation & Lighting
-
----
-
-## 📁 Project Structure
-
-```
-datashare/
-├── README.md                          # This file
-├── DATA_DESCRIPTION.md                # Detailed dataset documentation
+Nase_Crater_Detection/
+├── app/                          # Flask web application
+│   ├── app.py                    # Main Flask server
+│   ├── model_utils.py            # Detection and processing functions
+│   ├── requirements.txt          # Python dependencies
+│   ├── run.bat                   # Windows batch launcher
+│   ├── static/
+│   │   ├── css/style.css         # Web interface styling
+│   │   ├── js/script.js          # Frontend functionality
+│   │   └── uploads/              # Uploaded images storage
+│   └── templates/index.html      # Web interface HTML
 │
-├── train/                             # Training data directory
-│   └── train/                         # 4,150 annotated images
+├── submission/                   # Final submission package
+│   └── code/
+│       ├── solution.py           # Main prediction script
+│       ├── best.pt               # Trained YOLO model weights
+│       ├── train.sh              # Training script (training not required)
+│       ├── test.sh               # Testing/inference script
+│       └── Dockerfile            # Docker containerization
 │
-├── test/                              # Test data directory
-│   └── test/                          # 1,350 unlabeled images
+├── ModelTraining/                # Model training configuration
+│   └── Model/
+│       ├── args.yaml             # YOLO training hyperparameters
+│       ├── weights/              # Model checkpoints
+│       ├── results.csv           # Training results
+│       ├── predict/              # Prediction output directory
+│       └── val/                  # Validation output directory
 │
-├── train-sb/                          # Supporting files
-│   ├── train-gt.csv                   # Ground truth labels
-│   ├── detections-04-16.csv           # Example detection output
-│   ├── data_combiner.py               # CSV combining utility
-│   └── scorer.py                      # Evaluation script
+├── Notebooks/                    # Jupyter notebooks for analysis
+│   ├── Datadownloader.ipynb      # Data download utilities
+│   ├── Ellipsprediction.ipynb    # Ellipse fitting experimentation
+│   ├── FinalSolution.ipynb       # Final solution development
+│   ├── Testdata.ipynb            # Test data preparation
+│   ├── Testsolution.ipynb        # Solution testing
+│   └── Yoloprediction.ipynb      # YOLO prediction experiments
 │
-├── yolo/                              # YOLO model files
-│   ├── train_yolo.py                  # Training script
-│   ├── train_crater_yolo.ipynb        # Training notebook
-│   ├── example_workflow.py            # Complete workflow example
-│   ├── crater.yaml                    # YOLO dataset config
-│   ├── yolov8n.pt                     # Pretrained model (nano)
-│   ├── COMMANDS.bat                   # Quick reference commands
-│   └── dataset/                       # Prepared dataset for YOLO
+├── train/ & test/                # Training and test datasets
+│   └── altitude01-10/            # Images organized by altitude
 │
-├── submission/                        # Final submission
-│   ├── code/
-│   │   ├── solution.py                # Main prediction script
-│   │   ├── best.pt                    # Trained model weights
-│   │   ├── Dockerfile                 # Docker configuration
-│   │   ├── train.sh                   # Training entry point
-│   │   └── test.sh                    # Testing entry point
-│   └── output.csv                     # Generated predictions
+├── yolo/                         # YOLO-specific directories
+│   ├── dataset/                  # YOLO format dataset
+│   │   ├── images/               # Image files
+│   │   └── labels/               # Annotation labels
+│   ├── predictions/              # Model predictions
+│   └── runs/                     # Training run outputs
 │
-├── ModelTraining/                     # Additional model checkpoints
-│   ├── Model/
-│   │   ├── weights/
-│   │   └── results.csv
-│   ├── predict/
-│   └── val/
+├── provided files/               # External utilities
+│   ├── scorer.py                 # Offline scoring script
+│   ├── data_combiner.py          # Data combining utilities
+│   ├── detections-04-16.csv      # Detection results
+│   └── train-gt.csv              # Ground truth labels
 │
-├── crater_detection_output/           # Sample outputs
-│   └── orientation01_light02/
-│       ├── crops/                     # Extracted crater crops
-│       ├── results/                   # Detection results
-│       │   ├── detections.json
-│       │   ├── ellipse_params.csv
-│       │   └── summary_statistics.json
-│       └── visualizations/
-│
-└── Notebooks/
-  ├── Datadownloader.ipynb           # Data exploration
-  ├── Testdata.ipynb                 # Testing utilities
-  ├── Testsolution.ipynb             # Solution testing
-  ├── Yoloprediction.ipynb           # YOLO prediction demo
-  ├── Ellipsprediction.ipynb         # Ellipse fitting demo
-  └── FinalSolution.ipynb            # Complete pipeline
+└── crater_detection_output/      # Processing outputs
+    └── orientation01_light02/
+        ├── crops/                # Extracted crater crops
+        ├── results/              # Detection results JSON
+        └── visualizations/       # Visual outputs
 ```
 
 ---
 
-## 🔧 Installation & Setup
+## 🚀 Quick Start
 
-### Prerequisites
+### 1. **Environment Setup**
 
-- **Python 3.8+** (tested with 3.10+)
-- **Windows/Linux/Mac**
-- **GPU** (optional, but recommended for training)
-
-### Step 1: Clone/Download the Repository
-
+#### Windows Users:
 ```bash
-cd d:\datashare
-```
+# Navigate to project directory
+cd d:\Nase_Crater_Detection
 
-### Step 2: Create Virtual Environment
-
-**Windows (PowerShell):**
-```powershell
+# Create virtual environment (if not already created)
 python -m venv env
-.\env\Scripts\Activate.ps1
+
+# Activate virtual environment
+env\Scripts\activate
+
+# Install dependencies
+pip install -r app/requirements.txt
 ```
 
-**Windows (CMD):**
-```cmd
-python -m venv env
-.\env\Scripts\activate.bat
-```
-
-**Linux/Mac:**
+#### Linux/Mac Users:
 ```bash
-python -m venv env
+cd /path/to/Nase_Crater_Detection
+python3 -m venv env
 source env/bin/activate
+pip install -r app/requirements.txt
 ```
 
-### Step 3: Install Dependencies
+### 2. **Run Web Application**
 
 ```bash
-pip install --upgrade pip
-pip install numpy opencv-python ultralytics pandas scikit-image matplotlib jupyter ipykernel
+# Windows
+cd app
+python app.py
+# OR use the batch file
+run.bat
+
+# Linux/Mac
+cd app
+python3 app.py
 ```
 
-For GPU support (CUDA 11.8):
-```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
+The web interface will be available at: **http://localhost:5000**
 
-### Step 4: Verify Installation
-
-```bash
-python -c "from ultralytics import YOLO; print('✓ YOLO installed successfully')"
-python -c "import cv2; print('✓ OpenCV installed successfully')"
-```
-
----
-
-## ⚡ Quick Start
-
-### Run Predictions on Test Data
-
-```bash
-# Activate environment
-.\env\Scripts\Activate.ps1
-
-# Run predictions
-cd submission\code
-python solution.py ..\..\test\test ..\..\submission\output.csv
-```
-
-**Output**: `submission/output.csv` containing crater detections
-
-### View Results
-
-```bash
-# Check output file
-type ..\output.csv | head -20
-```
-
-Expected columns:
-```
-ellipseCenterX(px), ellipseCenterY(px), ellipseSemimajor(px), 
-ellipseSemiminor(px), ellipseRotation(deg), inputImage, crater_classification
-```
-
----
-
-## 📖 Detailed Usage Guide
-
-### 1. Training a New Model
-
-#### Option A: Using Python Script
-
-```bash
-cd yolo
-python train_yolo.py train --model yolov8n --epochs 50 --batch 8 --imgsz 1024 --patience 15
-```
-
-**Parameters:**
-- `--model`: Model size (yolov8n, yolov8s, yolov8m, yolov8l)
-- `--epochs`: Number of training epochs (default: 50)
-- `--batch`: Batch size (default: 8, adjust based on GPU memory)
-- `--imgsz`: Image size (default: 1024)
-- `--patience`: Early stopping patience (default: 15)
-
-#### Option B: Using Jupyter Notebook
-
-```bash
-# Activate environment and start Jupyter
-jupyter notebook train_crater_yolo.ipynb
-```
-
-Open the notebook and run cells sequentially:
-1. Cell 1: Install dependencies
-2. Cell 2-3: Prepare dataset
-3. Cell 4-6: Train model
-4. Cell 7-8: Validate results
-
-#### Option C: Complete Workflow
-
-```bash
-python example_workflow.py
-```
-
-This executes all steps: prepare → train → validate → predict → export
-
-### 2. Making Predictions
-
-#### Batch Prediction on Full Dataset
+### 3. **Run Batch Processing**
 
 ```bash
 cd submission/code
-python solution.py <input_directory> <output_csv>
-```
-
-**Example:**
-```bash
-python solution.py ..\..\test\test predictions.csv
-```
-
-#### Prediction on Single Image
-
-```python
-from ultralytics import YOLO
-from PIL import Image
-
-model = YOLO('best.pt')
-results = model.predict(source='crater_image.png', imgsz=640, conf=0.25)
-
-for r in results:
-  print(r.boxes)  # Detection boxes
-```
-
-### 3. Evaluating Predictions
-
-#### Against Ground Truth
-
-```bash
-cd train-sb
-python scorer.py --predictions ..\submission\output.csv --ground-truth train-gt.csv
-```
-
-Expected output:
-```
-Evaluation Metrics:
-- Precision: 0.XX
-- Recall: 0.XX
-- F1-Score: 0.XX
-- Mean IoU: 0.XX
-```
-
-#### Combining Multiple CSVs
-
-```bash
-cd train-sb
-python data_combiner.py --input-files pred1.csv pred2.csv pred3.csv --output combined.csv
+python solution.py --input <image_path> --output <output_csv>
 ```
 
 ---
 
-## 📥📤 Input/Output Specifications
+## 📦 Dependencies
 
-### Input Format
+| Package | Version | Purpose |
+|---------|---------|---------|
+| flask | Latest | Web framework |
+| ultralytics | Latest | YOLO model framework |
+| opencv-python-headless | Latest | Image processing |
+| numpy | Latest | Numerical computations |
+| pandas | Latest | Data manipulation |
 
-**Image Files:**
-- **Format**: PNG files
-- **Size**: Variable (typically 256×256 to 2048×2048)
-- **Color Space**: RGB or Grayscale
-- **Location Structure**:
-  ```
-  <root>/altitude<NN>/longitude<NN>/orientation<NN>_light<N>.png
-  ```
-
-**Directory Structure:**
+Install all dependencies:
+```bash
+pip install flask ultralytics opencv-python-headless numpy pandas
 ```
-test/test/
-├── altitude01/
-│   ├── longitude05/
-│   │   ├── orientation01_light01.png
-│   │   ├── orientation01_light02.png
-│   │   └── ...
-│   ├── longitude06/
-│   └── ...
-├── altitude02/
-└── ...
-```
-
-### Output Format
-
-**CSV File**: `solution.csv` or `output.csv`
-
-**Columns:**
-1. **ellipseCenterX(px)**: X-coordinate of crater center (float, pixels)
-2. **ellipseCenterY(px)**: Y-coordinate of crater center (float, pixels)
-3. **ellipseSemimajor(px)**: Semi-major axis length (float, pixels)
-4. **ellipseSemiminor(px)**: Semi-minor axis length (float, pixels)
-5. **ellipseRotation(deg)**: Rotation angle (float, degrees 0-180)
-6. **inputImage**: Relative path to image (string, format: altitude/longitude/filename)
-7. **crater_classification**: Crater class/type (integer, 0-N)
-
-**Example Output:**
-```csv
-ellipseCenterX(px),ellipseCenterY(px),ellipseSemimajor(px),ellipseSemiminor(px),ellipseRotation(deg),inputImage,crater_classification
-512.45,478.23,45.67,38.92,23.45,altitude01/longitude05/orientation01_light01,0
-623.12,389.56,52.34,47.89,15.67,altitude01/longitude05/orientation01_light02,1
-...
-```
-
-**Sample File Size**: ~21,826 detections for test set
 
 ---
 
-## 🧪 Testing & Validation
+## 🧠 Core Components
 
-### Unit Tests
+### 1. **app/app.py** - Flask Web Server
+Main web application providing REST API for crater detection.
 
-```bash
-cd submission/code
-python -m pytest tests/ -v
-```
+**Key Routes:**
+- `GET /` - Returns web interface
+- `POST /detect` - Accepts image upload and returns detection results
 
-### Validation Workflow
-
-```bash
-# 1. Prepare test subset
-python ..\yolo\train_yolo.py validate --model best.pt
-
-# 2. Run predictions on validation set
-python solution.py ..\..\test\test val_output.csv
-
-# 3. Evaluate
-python ..\train-sb\scorer.py --predictions val_output.csv --ground-truth ..\..\train-sb\train-gt.csv
-```
-
-### Testing with Sample Data
-
-**Test on single image:**
-```bash
-# Create test directory
-mkdir test_single
-copy train\train\altitude01\longitude02\orientation01_light01.png test_single\
-
-# Run prediction
-python solution.py test_single output_single.csv
-
-# View result
-type output_single.csv
-```
-
-**Expected output**: 1-50 crater detections for a single image
-
-### Interactive Testing with Jupyter
-
-```bash
-# Open test notebooks
-jupyter notebook Testsolution.ipynb
-jupyter notebook Yoloprediction.ipynb
-```
-
-These notebooks provide:
-- Step-by-step prediction walkthrough
-- Visualization of detections
-- Performance metrics
-- Debugging tools
-
----
-
-## 📊 Results & Performance
-
-### Model Performance Metrics
-
-**Typical Results on Test Set:**
-- Precision: 0.82-0.88
-- Recall: 0.75-0.85
-- F1-Score: 0.78-0.86
-- Mean Average Precision (mAP50): 0.80-0.87
-
-**Inference Time:**
-- Per image: ~50-200ms (CPU)
-- Per image: ~20-80ms (GPU)
-- Batch of 100: ~10-30 seconds (CPU)
-
-### Example Output Statistics
-
-From `crater_detection_output/orientation01_light02/results/`:
-
-**summary_statistics.json:**
+**Output Format:**
 ```json
 {
-  "total_detections": 42,
-  "total_craters": 38,
-  "average_crater_size_px": 62.5,
-  "size_range": [15.3, 245.8],
-  "confidence_range": [0.25, 0.99]
+  "original_url": "/static/uploads/image.jpg",
+  "processed_url": "/static/uploads/processed_image.jpg",
+  "detections": [
+    {
+      "bbox": [x1, y1, x2, y2],
+      "class": 0,
+      "ellipse": {
+        "cx": center_x,
+        "cy": center_y,
+        "major": semi_major_axis,
+        "minor": semi_minor_axis,
+        "angle": rotation_angle
+      }
+    }
+  ],
+  "count": 5
 }
 ```
 
-**ellipse_params.csv sample:**
-```csv
-crater_id,center_x,center_y,semi_major,semi_minor,rotation_deg,confidence
-1,342.5,512.3,48.2,41.7,23.4,0.95
-2,678.9,234.1,62.1,51.3,45.2,0.88
-...
+### 2. **app/model_utils.py** - Detection Pipeline
+Implements crater detection and ellipse fitting.
+
+**Key Functions:**
+- `detect_craters(image_path)` - Main detection function
+- `process_crop(crop_img)` - Fits ellipse to crater crop
+
+**Detection Pipeline:**
+1. Load image with OpenCV
+2. Run YOLO model for crater localization
+3. Extract bounding boxes
+4. For each detection, fit ellipse using image processing
+5. Return annotated image with detections
+
+### 3. **submission/code/solution.py** - Batch Processing
+Standalone solution for batch processing multiple images.
+
+**Features:**
+- Processes single or multiple images
+- Outputs results in CSV format
+- Compatible with scoring system
+- Standalone execution without Flask
+
+### 4. **provided files/scorer.py** - Evaluation Metrics
+Scoring system for evaluating detection accuracy.
+
+**Metrics:**
+- Crater matching using Gaussian Area (dGA)
+- Precision, Recall, F1-Score
+- Localization accuracy
+- Ellipse parameter accuracy
+
+---
+
+## 🔄 Crater Detection Process
+
+### Detection Pipeline Flow:
+
+```
+Input Image
+    ↓
+YOLO Object Detection (YOLOv8n)
+    ↓
+Extract Bounding Boxes
+    ↓
+Process Each Crop:
+    - Convert to Grayscale
+    - Gaussian Blur
+    - CLAHE Enhancement
+    - Canny Edge Detection
+    - Distance Transform
+    - Rim Point Extraction
+    ↓
+Fit Ellipse to Rim Points
+    ↓
+Generate Global Coordinates
+    ↓
+Draw Ellipse on Original Image
+    ↓
+Output Detections + Annotated Image
 ```
 
-### Visualization
+### Image Processing Steps:
 
-See `crater_detection_output/orientation01_light02/visualizations/` for:
-- Detection overlays on original images
-- Ellipse fitting results
-- Rim point cloud visualization
-- Distance transform heatmaps
+1. **Preprocessing**
+   - Gaussian blur (7×7 kernel)
+   - CLAHE enhancement (clip_limit=3.0, grid=8×8)
+
+2. **Edge Detection**
+   - Canny edge detector (50, 140 thresholds)
+   - Remove 10px borders
+
+3. **Distance Transform**
+   - L2 distance metric
+   - Normalize to [0, 1]
+
+4. **Rim Point Extraction**
+   - Select points at distance < 0.12 from edges
+   - Minimum 30 points required
+
+5. **Ellipse Fitting**
+   - OpenCV fitEllipse() function
+   - Returns: center, axes, rotation angle
+
+---
+
+## 💻 Usage Examples
+
+### Example 1: Web Interface Detection
+1. Open http://localhost:5000
+2. Click "Upload Image"
+3. Select a crater image
+4. View detection results with drawn ellipses
+5. Download annotated image
+
+### Example 2: Batch Processing
+```bash
+# Single image
+python solution.py --image test.jpg --output results.csv
+
+# Multiple images
+python solution.py --input_dir ./images --output results.csv
+```
+
+### Example 3: Using model_utils in Python
+```python
+from model_utils import detect_craters
+
+image_path = "satellite_image.jpg"
+annotated_img, detections = detect_craters(image_path)
+
+for detection in detections:
+    print(f"Crater at {detection['bbox']}")
+    if detection['ellipse']:
+        ellipse = detection['ellipse']
+        print(f"  Center: ({ellipse['cx']}, {ellipse['cy']})")
+        print(f"  Semi-major: {ellipse['major']}, Semi-minor: {ellipse['minor']}")
+```
+
+---
+
+## 🎯 Model Details
+
+### YOLO Model Configuration
+- **Architecture**: YOLOv8 Nano (yolov8n.pt)
+- **Input Size**: 640×640 pixels
+- **Confidence Threshold**: 0.25
+- **IOU Threshold**: 0.5
+- **Device**: CPU
+- **Model Location**: `submission/code/best.pt`
+
+### Training Configuration (args.yaml)
+```yaml
+task: detect
+mode: train
+epochs: 30
+batch_size: 8
+image_size: 640
+workers: 8
+patience: 10 (early stopping)
+optimizer: auto
+device: GPU (0) / CPU fallback
+```
+
+---
+
+## 📊 Output Files
+
+### 1. Detection JSON Output
+```json
+{
+  "detections": [
+    {
+      "bbox": [x1, y1, x2, y2],
+      "ellipse_params": {
+        "center_x": 256.5,
+        "center_y": 128.3,
+        "semi_major": 45.2,
+        "semi_minor": 38.1,
+        "angle": 23.5
+      }
+    }
+  ]
+}
+```
+
+### 2. CSV Format Output
+Columns: image_id, crater_id, center_x, center_y, semi_major, semi_minor, angle
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Common Issues
-
-#### 1. Model Not Found Error
-
+### Issue: Model fails to load
 ```
-Error: Model 'best.pt' not found
+Error loading model from best.pt
 ```
-
 **Solution:**
 ```bash
-# Ensure model exists in submission/code/
-ls -la submission/code/best.pt
+# Ensure model file exists
+ls submission/code/best.pt
 
-# If missing, download or train new model
-cd yolo
-python train_yolo.py train --epochs 10  # Quick training
-cp runs/detect/train/weights/best.pt ../submission/code/
+# Verify ultralytics is installed
+pip install --upgrade ultralytics
 ```
 
-#### 2. Out of Memory Error
-
-```
-CUDA out of memory. Tried to allocate X.XX GiB
-```
-
-**Solution:**
-```bash
-# Reduce batch size
-python solution.py --batch 4  # Default is 8
-
-# Use CPU instead
-python solution.py --device cpu
-
-# Reduce image size
-python solution.py --imgsz 512  # Default is 1024
-```
-
-#### 3. No Detections in Output
-
-```
-# Output CSV has only header, no detections
-```
-
-**Causes & Solutions:**
-- **Low confidence threshold**: Reduce `--conf` parameter
-  ```bash
-  python solution.py --conf 0.1  # More lenient (default: 0.25)
-  ```
-
-- **Image format issue**: Check image compatibility
-  ```bash
-  python -c "from PIL import Image; img = Image.open('path/to/image.png'); print(img.size)"
-  ```
-
-- **Model not converged**: Retrain with more epochs
-  ```bash
-  python train_yolo.py train --epochs 100
-  ```
-
-#### 4. Ellipse Fitting Failures
-
-```
-Skipping crater: insufficient rim points detected
-```
-
-**Causes:**
-- Crater too small or weak contrast
-- Image too noisy or blurry
-
-**Solutions:**
-- Improve image preprocessing parameters in `solution.py`
-- Adjust edge detection thresholds (lines 30-40)
-- Lower rim mask distance threshold (line 50)
-
-#### 5. Incorrect Image IDs in Output
-
-```
-Image paths have backslashes instead of forward slashes
-```
-
-**Solution:**
-Already handled in code (line 175-176 of `solution.py`):
+### Issue: Port 5000 already in use
 ```python
-id.replace(os.sep, '/')  # Converts \ to /
+# In app.py, change port:
+app.run(debug=True, port=5001)  # Use different port
 ```
 
-### Debug Mode
+### Issue: No craters detected
+- Verify image format (JPG, PNG supported)
+- Check image size (should be reasonable satellite image)
+- Lower confidence threshold in model_utils.py
 
-Enable verbose logging:
-
-```bash
-# Edit solution.py and uncomment logging
-python solution.py --verbose
-```
-
-Or use Jupyter for step-by-step debugging:
-```python
-# In Jupyter cell:
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-from submission.code.solution import guess_detections
-guess_detections('test/test', 'debug_output.csv')
-```
-
-### Getting Help
-
-**For common questions:**
-1. Check `DATA_DESCRIPTION.md` for data format details
-2. Review `example_workflow.py` for complete workflow
-3. Check notebook outputs in `crater_detection_output/`
-
-**For issues:**
-1. Enable debug logging (see above)
-2. Test with single image first
-3. Verify model file exists and is readable
-4. Check Python and library versions
+### Issue: CUDA/GPU not available
+- Model automatically falls back to CPU
+- Installation: `pip install opencv-python-headless` (headless version)
 
 ---
 
-## 🚀 Advanced Usage
+## 🔧 Configuration
 
-### Custom Dataset Training
-
-```bash
-# Prepare your data
-python yolo/prepare_yolo.py --gt your_labels.csv --images-root your_images/ --out yolo/dataset --train-ratio 0.8
-
-# Train with custom settings
-cd yolo
-python train_yolo.py train --model yolov8l --epochs 200 --batch 16 --imgsz 1280 --lr0 0.001
-```
-
-### Model Export
-
-```bash
-python yolo/train_yolo.py export --weights best.pt --format onnx  # ONNX format
-python yolo/train_yolo.py export --weights best.pt --format torchscript  # TorchScript
-```
-
-### Docker Deployment
-
-```bash
-# Build image
-docker build -t crater-detector:latest submission/code/
-
-# Run container
-docker run -v $(pwd)/test:/data crater-detector:latest python solution.py /data/test /output/predictions.csv
-```
-
-### Batch Processing with Parallelization
-
+### Model Confidence Threshold
+Edit `model_utils.py`:
 ```python
-from concurrent.futures import ProcessPoolExecutor
-import os
+results = model.predict(
+    conf=0.25,  # ← Change this value (0.0-1.0)
+    iou=0.5
+)
+```
 
-def process_altitude(altitude_dir):
-  from submission.code.solution import guess_detections
-  guess_detections(altitude_dir, f'output_{altitude_dir}.csv')
+### Image Upload Folder
+Edit `app.py`:
+```python
+UPLOAD_FOLDER = os.path.join(..., 'static', 'uploads')
+```
 
-# Process each altitude in parallel
-altitudes = [f for f in os.listdir('test/test') if f.startswith('altitude')]
-with ProcessPoolExecutor(max_workers=4) as executor:
-  executor.map(process_altitude, altitudes)
+### Ellipse Fitting Parameters
+Edit `model_utils.py` in `process_crop()`:
+```python
+rim_mask = (dist < 0.12).astype(np.uint8) * 255  # ← Adjust threshold
 ```
 
 ---
 
-## 📝 File Reference
+## 📈 Performance Metrics
 
-### Key Scripts
+The scoring system evaluates:
+- **Precision**: Detected craters / Total detections
+- **Recall**: Detected craters / Ground truth craters
+- **F1-Score**: Harmonic mean of precision & recall
+- **Localization Error**: Distance between detected & actual centers
+- **Shape Error**: Difference in ellipse parameters
 
-| File | Purpose | Usage |
-|------|---------|-------|
-| `submission/code/solution.py` | Main prediction pipeline | `python solution.py <input> <output>` |
-| `yolo/train_yolo.py` | Model training | `python train_yolo.py train --epochs 50` |
-| `train-sb/scorer.py` | Evaluation | `python scorer.py --predictions <csv>` |
-| `yolo/example_workflow.py` | Complete workflow | `python example_workflow.py` |
-| `train-sb/data_combiner.py` | Merge CSV files | `python data_combiner.py --input-files <files>` |
+Run scorer:
+```bash
+python provided\ files/scorer.py \
+    --pred output.csv \
+    --truth train-gt.csv \
+    --out_dir results/
+```
 
-### Notebooks
+---
+
+## 📝 Training & Validation Data
+
+### Data Structure
+```
+train/
+├── altitude01/image_001.jpg
+├── altitude02/image_045.jpg
+...
+└── altitude10/image_999.jpg
+
+test/
+├── altitude01-10 (same structure)
+```
+
+### Labels Format (YOLO)
+Located in `yolo/dataset/labels/`:
+```
+<class_id> <center_x> <center_y> <width> <height>
+```
+
+---
+
+## 🚢 Docker Deployment
+
+Build Docker image:
+```bash
+cd submission/code
+docker build -t crater-detection .
+```
+
+Run container:
+```bash
+docker run -p 5000:5000 crater-detection
+```
+
+---
+
+## 📚 Jupyter Notebooks
 
 | Notebook | Purpose |
 |----------|---------|
-| `FinalSolution.ipynb` | Complete end-to-end pipeline |
-| `Yoloprediction.ipynb` | YOLO detection demo |
-| `Ellipsprediction.ipynb` | Ellipse fitting details |
-| `Testsolution.ipynb` | Solution validation |
-| `Testdata.ipynb` | Data exploration |
+| FinalSolution.ipynb | Complete solution development & testing |
+| Yoloprediction.ipynb | YOLO model experimentation |
+| Ellipsprediction.ipynb | Ellipse fitting algorithm development |
+| Testdata.ipynb | Test data preparation & analysis |
+| Datadownloader.ipynb | Data download & processing |
+| Testsolution.ipynb | Solution validation |
 
 ---
 
-## 📞 Support & Documentation
+## 🤝 Contributing
 
-- **Dataset Details**: See `DATA_DESCRIPTION.md`
-- **YOLO Documentation**: https://docs.ultralytics.com/
-- **OpenCV Documentation**: https://docs.opencv.org/
-- **Python Docs**: https://docs.python.org/3/
+To extend the project:
 
----
-
-## 📄 License
-
-This project is part of the Lunar Crater Detection Challenge. See `LICENSE` file for details.
+1. **Improve Detection**: Modify `model_utils.py` detection pipeline
+2. **Add Features**: Extend Flask routes in `app.py`
+3. **Retrain Model**: Use `ModelTraining/Model/args.yaml` configuration
+4. **Optimize Performance**: Adjust hyperparameters in configuration files
 
 ---
 
-## 🎓 Citation
+## 📄 License & Credits
 
-If you use this system in research, please cite:
-
-```bibtex
-@misc{crater_detection_2024,
-  title={Lunar Crater Detection System using YOLOv8 and Ellipse Fitting},
-  year={2024}
-}
-```
+- **YOLO Framework**: [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)
+- **Image Processing**: OpenCV
+- **Scoring**: Gaussian Area metric (dGA)
 
 ---
 
-**Last Updated**: January 2026
+## 🎓 Learning Resources
 
-For the latest updates and issues, check the project repository.
+- [YOLOv8 Documentation](https://docs.ultralytics.com/)
+- [OpenCV Tutorials](https://docs.opencv.org/)
+- [Ellipse Fitting Theory](https://en.wikipedia.org/wiki/Ellipse)
+- [Crater Science](https://en.wikipedia.org/wiki/Impact_crater)
 
+---
+
+**Last Updated**: January 2026  
+**Status**: Production Ready ✅
