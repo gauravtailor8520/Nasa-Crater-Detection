@@ -1,4 +1,25 @@
-# Crater Detection Project
+
+<img width="1680" height="260" alt="image" src="https://github.com/user-attachments/assets/778f5a31-4184-40e3-9046-135cb2acc508" />
+
+# Nasa Crater Detection System
+
+
+
+
+A complete automated pipeline for detecting and characterizing lunar craters from satellite imagery using YOLOv8 object detection and ellipse fitting algorithms.
+
+---
+https://github.com/user-attachments/assets/06d8fc98-7df0-4144-ac38-88cbd0f1c754
+
+
+
+
+
+
+---
+<img width="2592" height="2048" alt="image" src="https://github.com/user-attachments/assets/4ed27e68-f87f-4dc8-9d51-3f5e4fcbb48e" />
+
+
 
 ## 📋 Project Overview
 
