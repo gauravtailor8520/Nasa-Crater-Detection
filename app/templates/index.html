@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Crater Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+
+    <div class="container">
+        <header>
+            <h1>NASA Crater Detection</h1>
+            <p>Advanced AI-driven lunar surface analysis</p>
+        </header>
+
+        <main>
+            <div class="upload-section" id="drop-area">
+                <div class="icon-container">
+                    <svg viewBox="0 0 24 24" width="64" height="64" stroke="currentColor" stroke-width="1.5" fill="none" class="upload-icon">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <p>Drag & Drop Lunar Imagery</p>
+                <p class="tiny-text">or</p>
+                <input type="file" id="fileElem" accept="image/*" onchange="handleFiles(this.files)">
+                <label class="button" for="fileElem">Select File</label>
+            </div>
+
+            <div class="loading hidden" id="loading">
+                <div class="loader"></div>
+                <p>Analyzing Surface Topography...</p>
+            </div>
+
+            <div class="results-section hidden" id="results">
+                <div class="image-container">
+                    <div class="img-card">
+                        <h3>Original</h3>
+                        <img id="original-img" src="" alt="Original">
+                    </div>
+                    <div class="img-card">
+                        <h3>Detection Result</h3>
+                        <img id="processed-img" src="" alt="Processed">
+                    </div>
+                </div>
+                
+                <div class="stats-panel">
+                    <h2>Mission Report</h2>
+                    <div class="stat-item">
+                        <span class="label">Craters Detected:</span>
+                        <span class="value" id="crater-count">0</span>
+                    </div>
+                    <!-- Future stats can go here -->
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Powered by YOLOv8 & OpenCV | NASA Challenge Submission</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
