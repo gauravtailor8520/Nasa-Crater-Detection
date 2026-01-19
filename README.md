@@ -103,16 +103,6 @@ datashare/
 │   │   └── test.sh                    # Testing entry point
 │   └── output.csv                     # Generated predictions
 │
-├── sample-submission/                 # Sample submission format
-│   ├── code/
-│   │   └── sample_solution.py         # Reference implementation
-│   └── solution/
-│       └── solution.csv               # Example output format
-│
-├── final-submission/                  # Final submission package
-│   ├── code/
-│   └── solution/
-│
 ├── ModelTraining/                     # Additional model checkpoints
 │   ├── Model/
 │   │   ├── weights/
@@ -130,12 +120,12 @@ datashare/
 │       └── visualizations/
 │
 └── Notebooks/
-    ├── Datadownloader.ipynb           # Data exploration
-    ├── Testdata.ipynb                 # Testing utilities
-    ├── Testsolution.ipynb             # Solution testing
-    ├── Yoloprediction.ipynb           # YOLO prediction demo
-    ├── Ellipsprediction.ipynb         # Ellipse fitting demo
-    └── FinalSolution.ipynb            # Complete pipeline
+  ├── Datadownloader.ipynb           # Data exploration
+  ├── Testdata.ipynb                 # Testing utilities
+  ├── Testsolution.ipynb             # Solution testing
+  ├── Yoloprediction.ipynb           # YOLO prediction demo
+  ├── Ellipsprediction.ipynb         # Ellipse fitting demo
+  └── FinalSolution.ipynb            # Complete pipeline
 ```
 
 ---
@@ -288,7 +278,7 @@ model = YOLO('best.pt')
 results = model.predict(source='crater_image.png', imgsz=640, conf=0.25)
 
 for r in results:
-    print(r.boxes)  # Detection boxes
+  print(r.boxes)  # Detection boxes
 ```
 
 ### 3. Evaluating Predictions
@@ -632,13 +622,13 @@ from concurrent.futures import ProcessPoolExecutor
 import os
 
 def process_altitude(altitude_dir):
-    from submission.code.solution import guess_detections
-    guess_detections(altitude_dir, f'output_{altitude_dir}.csv')
+  from submission.code.solution import guess_detections
+  guess_detections(altitude_dir, f'output_{altitude_dir}.csv')
 
 # Process each altitude in parallel
 altitudes = [f for f in os.listdir('test/test') if f.startswith('altitude')]
 with ProcessPoolExecutor(max_workers=4) as executor:
-    executor.map(process_altitude, altitudes)
+  executor.map(process_altitude, altitudes)
 ```
 
 ---
