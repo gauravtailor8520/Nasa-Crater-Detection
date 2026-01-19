@@ -1,0 +1,10 @@
+{
+  "total_detections": 38,
+  "successful_ellipse_fits": 38,
+  "fit_success_rate": "100.0%",
+  "avg_semi_major": "67.60",
+  "avg_semi_minor": "59.49",
+  "avg_eccentricity": "0.197",
+  "min_crater_size": "34.04",
+  "max_crater_size": "133.74"
+}

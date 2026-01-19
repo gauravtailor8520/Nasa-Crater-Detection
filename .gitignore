@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# Large files (optional, uncomment if needed)
+# *.pt
+# *.csv
+
+# Data Directories
+sample-submission/
+test/
+train/
+train-sample/
+archive/
