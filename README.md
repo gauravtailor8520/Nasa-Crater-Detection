@@ -18,6 +18,8 @@ A complete automated pipeline for detecting and characterizing lunar craters fro
 - [Troubleshooting](#troubleshooting)
 
 ---
+<img width="2592" height="2048" alt="image" src="https://github.com/user-attachments/assets/4ed27e68-f87f-4dc8-9d51-3f5e4fcbb48e" />
+
 
 ## 🎯 Overview
 
